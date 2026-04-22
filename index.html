@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Patrimonial - Gestão Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800">
+
+    <nav class="bg-slate-900 text-white shadow-xl px-6 py-4 border-b-4 border-blue-600 sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 p-2 rounded-lg"><i class="fas fa-layer-group"></i></div>
+                <span class="text-xl font-black italic tracking-tighter text-white">NEXUS <span class="text-blue-400 font-light font-sans">PATRIMONIAL</span></span>
+            </div>
+            <button id="btn-sync" onclick="carregarDados()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-lg">
+                <i class="fas fa-sync-alt mr-1"></i> ATUALIZAR
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-[1600px] mx-auto p-4 space-y-6">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-800 p-6 rounded-2xl shadow-xl text-white border-l-8 border-amber-500">
+                <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Reserva de Emergência (Objetivo)</p>
+                <p class="text-3xl font-black italic text-amber-500">R$ 0,00</p>
+            </div>
+            
+            <div onclick="togglePartilha()" class="bg-emerald-700 p-6 rounded-2xl shadow-xl text-white border-l-8 border-emerald-400 cursor-pointer hover:bg-emerald-600 transition-all group relative">
+                <div id="label-partilha" class="flex justify-between items-center">
+                    <div>
+                        <p class="text-emerald-200 text-[10px] font-black uppercase tracking-widest">Painel de Divisão</p>
+                        <p class="text-2xl font-black italic uppercase">Ver Partilha <i class="fas fa-chevron-down ml-2 text-sm group-hover:translate-y-1 transition-transform"></i></p>
+                    </div>
+                    <i class="fas fa-hand-holding-dollar text-3xl text-emerald-500/50"></i>
+                </div>
+
+                <div id="conteudo-partilha" class="hidden mt-4 pt-4 border-t border-emerald-600 grid grid-cols-2 gap-4 animate-fade-in">
+                    <div>
+                        <p class="text-emerald-200 text-[9px] font-black uppercase">Cota Mãe (50%)</p>
+                        <p id="share-mae" class="text-xl font-black">R$ 0,00</p>
+                    </div>
+                    <div class="border-l border-emerald-600 pl-4">
+                        <p class="text-emerald-200 text-[9px] font-black uppercase">Herdeiro (1/6)</p>
+                        <p id="share-herdeiro" class="text-xl font-black">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-xl border-t-4 border-amber-400 shadow-sm text-center">
+                    <p class="text-slate-400 text-[10px] font-black uppercase">Receita Pendente</p>
+                    <p id="total-pendente-rec" class="text-xl font-black text-amber-600">R$ 0,00</p>
+                </div>
+                <h3 class="text-slate-500 font-black text-[11px] uppercase px-2 flex items-center justify-between gap-2">
+                    <span class="flex items-center gap-2"><i class="fas fa-clock text-amber-400"></i> A Receber</span>
+                    <button onclick="abrirModal('RECEITA')" class="bg-amber-400 hover:bg-amber-500 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-all">
+                        <i class="fas fa-plus text-[10px]"></i>
+                    </button>
+                </h3>
+                <div id="col-a-receber" class="space-y-3"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-xl border-t-4 border-emerald-500 shadow-sm text-center">
+                    <p class="text-slate-400 text-[10px] font-black uppercase">Total Recebido</p>
+                    <p id="total-recebido-caixa" class="text-xl font-black text-emerald-600">R$ 0,00</p>
+                </div>
+                <h3 class="text-emerald-600 font-black text-[11px] uppercase px-2 flex items-center gap-2"><i class="fas fa-check-circle"></i> Recebidos</h3>
+                <div id="col-recebidos" class="space-y-3"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-xl border-t-4 border-red-400 shadow-sm text-center">
+                    <p class="text-slate-400 text-[10px] font-black uppercase">Contas a Pagar</p>
+                    <p id="total-pendente-desp" class="text-xl font-black text-red-600">R$ 0,00</p>
+                </div>
+                <h3 class="text-slate-500 font-black text-[11px] uppercase px-2 flex items-center justify-between gap-2">
+                    <span class="flex items-center gap-2"><i class="fas fa-exclamation-triangle text-red-400"></i> A Pagar</span>
+                    <button onclick="abrirModal('DESPESA')" class="bg-red-400 hover:bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-all">
+                        <i class="fas fa-plus text-[10px]"></i>
+                    </button>
+                </h3>
+                <div id="col-a-pagar" class="space-y-3"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-xl border-t-4 border-slate-600 shadow-sm text-center">
+                    <p class="text-slate-400 text-[10px] font-black uppercase">Total Pago</p>
+                    <p id="total-pago-caixa" class="text-xl font-black text-slate-700">R$ 0,00</p>
+                </div>
+                <h3 class="text-slate-500 font-black text-[11px] uppercase px-2 flex items-center gap-2"><i class="fas fa-file-invoice-dollar text-slate-400"></i> Pagos</h3>
+                <div id="col-pagos" class="space-y-3"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxnkMNLlfe44ML5Ofs85_5c35Pa82MFmE76ncIiwzO4OK6lLwf9QHGm5Yb1kna7kWOc/exec"; // RECOLOQUE SEU LINK AQUI
+
+        // Função de Seta (Design Web): Mantém a seta sempre alinhada
+        function togglePartilha() {
+            const cont = document.getElementById('conteudo-partilha');
+            const iconeSeta = document.querySelector('#label-partilha i.fas');
+            
+            if (cont.classList.contains('hidden')) {
+                cont.classList.remove('hidden');
+                iconeSeta.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            } else {
+                cont.classList.add('hidden');
+                iconeSeta.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            }
+        }
+
+        // Função de Ação (Desenvolvedor Finanças): Envia o sinal para o Google
+        async function acao(rowId, tipo, operacao = 'confirmar') {
+            const msgs = { 
+                'confirmar_receita': "Confirmar recebimento deste valor?", 
+                'confirmar_despesa': "Confirmar pagamento desta conta?", 
+                'estornar': "Deseja desfazer esta ação e voltar o item para PENDENTE?" 
+            };
+            
+            const chaveMsg = operacao === 'estornar' ? 'estornar' : 'confirmar_' + tipo;
+            if(!confirm(msgs[chaveMsg])) return;
+
+            const btnSync = document.getElementById('btn-sync');
+            btnSync.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SALVANDO...';
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ rowId: rowId, acao: operacao }) // Garante que envia 'estornar'
+                });
+                
+                // Dá tempo para o Google salvar (FUNDAMENTAL para o estorno funcionar)
+                setTimeout(carregarDados, 1800);
+            } catch (e) {
+                alert("Erro de conexão.");
+                carregarDados();
+            }
+        }
+
+        // Função de Carga: Busca os dados na planilha
+        async function carregarDados() {
+            try {
+                const res = await fetch(API_URL + "?t=" + new Date().getTime());
+                const data = await res.json();
+                renderizar(data);
+            } catch (e) { console.error("Erro no carregamento", e); }
+        }
+
+        // Função de Renderizar (Design Web + Finanças): Constrói a tela
+        function renderizar(data) {
+            const dom = { 
+                rec: document.getElementById('col-a-receber'), recd: document.getElementById('col-recebidos'),
+                pag: document.getElementById('col-a-pagar'), pago: document.getElementById('col-pagos') 
+            };
+            Object.values(dom).forEach(el => el.innerHTML = "");
+
+            let pRec = 0, pDesp = 0, caixaRec = 0, caixaDesp = 0;
+
+            // FILTRO DE SEGURANÇA: Só processa o que tiver dados reais
+            const lancamentosValidos = data.lancamentos.filter(item => {
+                let raw = String(item.VALOR || "0").trim();
+                let v = parseFloat(raw.includes(',') ? raw.replace(/[R$\s.]/g, "").replace(",", ".") : raw.replace(/[R$\s]/g, "")) || 0;
+                const temImovel = String(item.IMOVEL || "").trim().length > 0;
+                
+                // Trava: Ignora valor zero OU item sem nome
+                return temImovel && Math.abs(v) > 0.01;
+            });
+
+            lancamentosValidos.forEach(item => {
+                let raw = String(item.VALOR || "0").trim();
+                let v = parseFloat(raw.includes(',') ? raw.replace(/[R$\s.]/g, "").replace(",", ".") : raw.replace(/[R$\s]/g, "")) || 0;
+                let isConf = String(item.CONFIRMADO).toUpperCase().trim() === "SIM";
+                let tipo = v < 0 ? 'despesa' : 'receita';
+
+                // Constrói o card visual
+                const cardHtml = `
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-center gap-2">
+                            <div class="truncate">
+                                <p class="font-bold text-[11px] uppercase text-slate-700">${item.IMOVEL || ''}</p>
+                                <p class="text-[9px] text-slate-400 italic">${item.DESCRICAO || ''}</p>
+                            </div>
+                            <p class="font-black text-xs ${v < 0 ? 'text-red-600' : 'text-emerald-700'} whitespace-nowrap">
+                                R$ ${Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2})}
+                            </p>
+                        </div>
+                        <div class="flex justify-end mt-2">
+                            ${!isConf ? 
+                                `<button onclick="acao(${item.rowId}, '${tipo}', 'confirmar')" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg text-[10px] w-full font-bold uppercase shadow-sm">Dar Baixa</button>` :
+                                `<button onclick="acao(${item.rowId}, '${tipo}', 'estornar')" class="bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg text-[9px] w-full border border-slate-200 transition-all font-bold italic uppercase"> <i class="fas fa-undo mr-1"></i> Estornar</button>`
+                            }
+                        </div>
+                    </div>`;
+
+                // Distribuição nas colunas
+                if (v > 0) { // Receita
+                    if (isConf) { caixaRec += v; dom.recd.innerHTML += cardHtml; }
+                    else { pRec += v; dom.rec.innerHTML += cardHtml; }
+                } else { // Despesa (Negativo)
+                    if (isConf) { caixaDesp += Math.abs(v); dom.pago.innerHTML += cardHtml; }
+                    else { pDesp += Math.abs(v); dom.pag.innerHTML += cardHtml; }
+                }
+            });
+
+            // Atualização de totais
+            const f = (n) => n.toLocaleString('pt-BR',{minimumFractionDigits:2});
+            const lucroReal = caixaRec - caixaDesp;
+            
+            document.getElementById('total-pendente-rec').innerText = "R$ " + f(pRec);
+            document.getElementById('total-pendente-desp').innerText = "R$ " + f(pDesp);
+            document.getElementById('total-recebido-caixa').innerText = "R$ " + f(caixaRec);
+            document.getElementById('total-pago-caixa').innerText = "R$ " + f(caixaDesp);
+            
+            document.getElementById('share-mae').innerText = "R$ " + f(lucroReal * 0.5);
+            document.getElementById('share-herdeiro').innerText = "R$ " + f(lucroReal / 6);
+            document.getElementById('btn-sync').innerHTML = '<i class="fas fa-sync-alt mr-1"></i> ATUALIZAR';
+        }
+
+        // Início automático
+        carregarDados();
+
+        // --- FUNÇÕES DO MODAL ---
+        function abrirModal(tipo) {
+            const modal = document.getElementById('modal-lancamento');
+            const header = document.getElementById('modal-header');
+            const inputTipo = document.getElementById('tipo-lancamento');
+            
+            inputTipo.value = tipo;
+            modal.classList.remove('hidden');
+
+            if (tipo === 'RECEITA') {
+                header.style.backgroundColor = '#fbbf24';
+                header.innerText = 'Nova Receita Pendente';
+            } else {
+                header.style.backgroundColor = '#f87171';
+                header.innerText = 'Nova Despesa a Pagar';
+            }
+            
+            // LINHA NOVA: Chama a função para preencher os imóveis assim que abre
+            carregarImoveisNoModal(); 
+        }
+
+        function fecharModal() {
+            // Adiciona a classe 'hidden' para esconder o modal
+            document.getElementById('modal-lancamento').classList.add('hidden');
+            
+            // Limpa o formulário para a próxima vez
+            document.getElementById('form-lancamento').reset();
+        }
+
+        // Função para carregar os imóveis no formulário
+        function carregarImoveisNoModal() {
+            google.script.run.withSuccessHandler(function(imoveis) {
+                const select = document.getElementById('modal-imovel');
+                select.innerHTML = '<option value="">Selecione o imóvel...</option>';
+                
+                imoveis.forEach(function(imovel) {
+                    let option = document.createElement('option');
+                    option.value = imovel;
+                    option.text = imovel;
+                    select.appendChild(option);
+                });
+            }).buscarListaImoveis();
+        }
+
+        document.getElementById('form-lancamento').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            
+            const dados = {
+                imovel: document.getElementById('modal-imovel').value,
+                descricao: document.getElementById('modal-descricao').value,
+                valor: document.getElementById('modal-valor').value,
+                categoria: document.getElementById('modal-categoria').value,
+                tipo: document.getElementById('tipo-lancamento').value
+            };
+
+            google.script.run.withSuccessHandler(function() {
+                fecharModal();
+                // Se você tiver uma função chamada carregarDados() para atualizar a tela, chame ela aqui
+                if (typeof carregarDados === "function") carregarDados(); 
+                alert("Salvo com sucesso!");
+            }).salvarNovoLancamento(dados);
+        });
+
+    </script>
+
+    <div id="modal-lancamento" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-slide-up">
+            <div id="modal-header" class="p-4 text-white font-black text-center uppercase tracking-widest text-sm">
+                Novo Lançamento
+            </div>
+            
+            <form id="form-lancamento" class="p-6 space-y-4">
+                <input type="hidden" id="tipo-lancamento">
+                
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Imóvel</label>
+                    <select id="modal-imovel" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-lg p-2 text-sm focus:border-blue-400 outline-none transition-all">
+                        <option value="">Selecione o imóvel...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Descrição</label>
+                    <input type="text" id="modal-descricao" placeholder="Ex: Conserto de encanamento" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-lg p-2 text-sm focus:border-blue-400 outline-none transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Valor (R$)</label>
+                        <input type="number" step="0.01" id="modal-valor" placeholder="0,00" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-lg p-2 text-sm focus:border-blue-400 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-slate-400 mb-1">Categoria</label>
+                        <input type="text" id="modal-categoria" placeholder="Ex: Manutenção" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-lg p-2 text-sm focus:border-blue-400 outline-none transition-all">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="fecharModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-500 font-black text-[11px] uppercase p-3 rounded-lg transition-all">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black text-[11px] uppercase p-3 rounded-lg shadow-lg transition-all">Salvar Lançamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
